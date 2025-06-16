@@ -38,7 +38,9 @@ app.post("/upload", upload.single("file"), async (req, res) => {
       })
       .promise();
 
-    const publicUrl = `https://${BUCKET_NAME}.${process.env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com/${filename}`;
+    //const publicUrl = `https://${BUCKET_NAME}.${process.env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com/${filename}`;
+    const publicUrl = `https://pub-bcd0954facce440ca60e0171468dafc9.r2.dev/${filename}`;
+    
     res.json({ url: publicUrl });
   } catch (err) {
     console.error("❌ Upload to R2 failed:", err);
