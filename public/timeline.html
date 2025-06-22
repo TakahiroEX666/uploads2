@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Timeline Chat</title>
   <style>
     :root {
@@ -68,6 +68,7 @@
       color: white;
       padding: 0.2rem 0.5rem;
       border-radius: 10px;
+      text-transform: capitalize;
     }
 
     .chat-img-group {
@@ -119,8 +120,6 @@
       bottom: 0;
       left: 0;
       right: 0;
-      
-      
       background: #fff;
       padding: 1rem;
       box-shadow: 0 -4px 10px rgba(0,0,0,0.08);
@@ -178,19 +177,18 @@
   </div>
 
   <div class="note-form">
-  <label class="upload-label" title="แนบรูปภาพ">
-    📎
-    <input type="file" id="imageInput" accept="image/*" multiple hidden />
-  </label>
-  <input type="text" id="titleInput" placeholder="คุณรู้สึกอย่างไร..." />
-  <div class="emoji-buttons">
+    <label class="upload-label" title="แนบรูปภาพ">
+      📎
+      <input type="file" id="imageInput" accept="image/*" multiple hidden />
+    </label>
+    <input type="text" id="titleInput" placeholder="คุณรู้สึกอย่างไร..." />
+    <div class="emoji-buttons">
       <button>😊</button><button>😢</button><button>😭</button>
       <button>😡</button><button>😍</button><button>😴</button>
       <button>🥹</button><button>😂</button><button>🥰</button>
+    </div>
+    <button class="save-btn" onclick="saveFeeling()">📤</button>
   </div>
-  <button class="save-btn" onclick="saveFeeling()">📤</button>
-  </div>
-
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.6/dist/umd/supabase.min.js"></script>
   <script>
@@ -199,6 +197,7 @@
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrbnRsYXdhYXdhd2l1c21qc2V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5ODcxMjAsImV4cCI6MjA2NTU2MzEyMH0.G-_fLzcpvPla3dUYNCV7qh0j-JHo1Ahr5fS7fQkHdpw'
     );
 
+    // ใส่อีโมจิลงใน input
     document.querySelectorAll(".emoji-buttons button").forEach(btn => {
       btn.onclick = () => {
         const input = document.getElementById("titleInput");
@@ -217,11 +216,27 @@
 
       if (imageInput.files.length) {
         const urls = [];
+
         for (let file of imageInput.files) {
-          // สมมุติ URL ชั่วคราว
-          urls.push("https://via.placeholder.com/150?text=Preview");
+          const formData = new FormData();
+          formData.append("file", file);
+
+          // เรียก API /upload (ฝั่ง server ต้องมี endpoint นี้)
+          const res = await fetch("/upload", { method: "POST", body: formData });
+          const json = await res.json();
+
+          if (json.error) {
+            alert("❌ Upload Failed: " + json.error);
+            return;
+          }
+
+          urls.push(json.url);
         }
-        await supabase.from('uploads').insert({ file_url: JSON.stringify(urls), note: title });
+
+        await supabase.from('uploads').insert({
+          file_url: JSON.stringify(urls),
+          note: title
+        });
       } else {
         await supabase.from('feelings').insert({ title });
       }
@@ -232,27 +247,35 @@
     }
 
     async function deleteItem(type, id) {
-      await supabase.from(type + 's').delete().eq('id', id);
+      const table = type === 'emotion' ? 'feelings' : type + 's';
+      const { error } = await supabase.from(table).delete().eq('id', id);
+      if (error) console.error(error);
       fetchTimeline();
     }
 
     async function fetchTimeline() {
-      const [feelings, notes, uploads] = await Promise.all([
-        supabase.from('feelings').select('*'),
-        supabase.from('notes').select('*'),
-        supabase.from('uploads').select('*')
+      const [feelingsRes, notesRes, uploadsRes] = await Promise.all([
+        supabase.from('feelings').select('*').order('created_at', { ascending: true }),
+        supabase.from('notes').select('*').order('created_at', { ascending: true }),
+        supabase.from('uploads').select('*').order('created_at', { ascending: false })
       ]);
+
+      if (feelingsRes.error || notesRes.error || uploadsRes.error) {
+        console.error(feelingsRes.error || notesRes.error || uploadsRes.error);
+        return;
+      }
 
       const timeline = [];
 
-      feelings.data?.forEach(item => timeline.push({ type: 'emotion', ...item }));
-      notes.data?.forEach(item => timeline.push({ type: 'note', ...item }));
-      uploads.data?.forEach(item => timeline.push({ type: 'upload', ...item }));
+      feelingsRes.data.forEach(item => timeline.push({ type: 'emotion', ...item }));
+      notesRes.data.forEach(item => timeline.push({ type: 'note', ...item }));
+      uploadsRes.data.forEach(item => timeline.push({ type: 'upload', ...item }));
 
-      //timeline.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-      timeline.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); // จากเก่าไปใหม่
-      scrollToBottom();
+      // เรียงลำดับ timeline จากเก่าไปใหม่
+      timeline.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
       renderTimeline(timeline);
+      scrollToBottom();
     }
 
     function renderTimeline(items) {
@@ -285,14 +308,20 @@
         } else if (item.type === 'note') {
           html += `<div class="chat-text"><span class="note-link" onclick="openNote('${item.id}')">${item.title}</span></div>`;
         } else if (item.type === 'upload') {
-          html += `<div class="chat-text">${item.note || ''}</div>`;
-          html += `<div class="chat-img-group">`;
+          html += `<div class="chat-text">📝 ${item.note || ''}</div>`;
+
+          let urls = [];
           try {
-            const urls = JSON.parse(item.file_url);
-            urls.slice(0, 4).forEach(url => {
-              html += `<img src="${url}" alt="upload"/>`;
-            });
-          } catch {}
+            urls = JSON.parse(item.file_url);
+            if (!Array.isArray(urls)) urls = [urls];
+          } catch {
+            urls = [item.file_url];
+          }
+
+          html += `<div class="chat-img-group">`;
+          urls.slice(0, 4).forEach(url => {
+            html += `<img src="${url}" alt="upload"/>`;
+          });
           html += `</div>`;
         }
 
@@ -302,8 +331,8 @@
     }
 
     function scrollToBottom() {
-  const container = document.getElementById("chatContainer");
-  container.scrollTop = container.scrollHeight;
+      const container = document.getElementById("chatContainer");
+      container.scrollTop = container.scrollHeight;
     }
 
     function extractYouTubeID(url) {
