@@ -308,7 +308,7 @@
         } else if (item.type === 'note') {
           html += `<div class="chat-text"><span class="note-link" onclick="openNote('${item.id}')">${item.title}</span></div>`;
         } else if (item.type === 'upload') {
-          html += `<div class="chat-text">📝 ${item.note || ''}</div>`;
+          html += `<div class="chat-text">${item.note || ''}</div>`;
 
           let urls = [];
           try {
