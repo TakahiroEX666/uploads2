@@ -40,7 +40,7 @@ export default {
           },
         });
 
-        const publicUrl = `https://pub-${env.CF_BUCKET_ID}.r2.dev/${filename}`;
+        const publicUrl = `https://pub-bcd0954facce440ca60e0171468dafc9.r2.dev/${filename}`;
 
         return new Response(JSON.stringify({ url: publicUrl }), {
           status: 200,
