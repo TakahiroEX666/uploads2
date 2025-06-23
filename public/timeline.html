@@ -222,7 +222,12 @@
           formData.append("file", file);
 
           // เรียก API /upload (ฝั่ง server ต้องมี endpoint นี้)
-          const res = await fetch("/upload", { method: "POST", body: formData });
+
+          const res = await fetch("https://uploads2.ballland10.workers.dev/upload", { method: "POST", body: formData });
+          
+
+          //endpoint
+          //const res = await fetch("/upload", { method: "POST", body: formData });
           const json = await res.json();
 
           if (json.error) {
