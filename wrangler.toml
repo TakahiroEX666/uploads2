@@ -1,0 +1,3 @@
+name = "my-worker"
+main = "server.js"   # หรือเปลี่ยนเป็น path ที่ถูกต้อง
+compatibility_date = "2025-06-23"
