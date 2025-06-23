@@ -34,7 +34,7 @@ export default {
 
         const filename = `${Date.now()}_${file.name}`;
 
-        await env.MY_BUCKET.put(filename, file.stream(), {
+        await uploads.put(filename, file.stream(), {
           httpMetadata: {
             contentType: file.type,
           },
