@@ -2,3 +2,7 @@ name = "my-worker"
 main = "server.js"   # หรือเปลี่ยนเป็น path ที่ถูกต้อง
 compatibility_date = "2025-06-23"
 compatibility_flags = ["nodejs_compat"]
+
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "uploads"
