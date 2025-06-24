@@ -1,359 +1,537 @@
 <!DOCTYPE html>
+
 <html lang="th">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Timeline Chat</title>
-  <style>
-    :root {
-      --bg-light: #f1f3f4;
-      --bg-dark: #1e1e1e;
-      --card-light: #ffffff;
-      --card-dark: #2c2c2c;
-      --text-light: #333;
-      --text-dark: #eee;
-    }
 
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: var(--bg-light);
-      color: var(--text-light);
-      margin: 0;
-      padding-bottom: 10rem;
-      max-width: 900px;
-      margin-inline: auto;
-      transition: background 0.3s, color 0.3s;
-    }
+    <meta charset="UTF-8" />
 
-    body.dark {
-      background: var(--bg-dark);
-      color: var(--text-dark);
-    }
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    .chat-container {
-      display: flex;
-      padding: 1rem;
-      flex-direction: column;
-      overflow-y: auto;
-      gap: 2rem;
-      height: calc(100vh - 12rem);
-    }
+    <title>Timeline Chat</title>
 
-    .chat-card {
-      background: var(--card-light);
-      padding: 1rem;
-      border-radius: 16px;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-      position: relative;
-      transition: background 0.3s;
-    }
+    <style>
+         :root {
+            --bg-light: #f1f3f4;
+            --bg-dark: #1e1e1e;
+            --card-light: #ffffff;
+            --card-dark: #2c2c2c;
+            --text-light: #333;
+            --text-dark: #eee;
+        }
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--bg-light);
+            color: var(--text-light);
+            margin: 0;
+            padding-bottom: 10rem;
+            max-width: 900px;
+            margin-inline: auto;
+            transition: background 0.3s, color 0.3s;
+        }
+        
+        body.dark {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+        
+        .chat-container {
+            display: flex;
+            padding: 1rem;
+            flex-direction: column;
+            overflow-y: auto;
+            gap: 2rem;
+            height: calc(100vh - 12rem);
+        }
+        
+        .chat-card {
+            background: var(--card-light);
+            padding: 1rem;
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            position: relative;
+            transition: background 0.3s;
+        }
+        
+        body.dark .chat-card {
+            background: var(--card-dark);
+        }
+        
+        .chat-meta {
+            font-size: 0.75rem;
+            color: gray;
+            margin-bottom: 0.5rem;
+        }
+        
+        .chat-type-label {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.75rem;
+            font-size: 0.7rem;
+            background: #ff6f00;
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            text-transform: capitalize;
+        }
+        
+        .chat-img-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .chat-img-group img {
+            width: 100%;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+        
+        iframe {
+            width: 100%;
+            height: 200px;
+            margin-top: 0.5rem;
+            border-radius: 12px;
+        }
+        
+        .chat-text {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .note-link {
+            color: #1976d2;
+            /*text-decoration: underline;*/
+            cursor: pointer;
+        }
+        
+        .theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: #ff6f00;
+            color: white;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 99;
+        }
+        
+        body.dark .note-form {
+            background: var(--card-dark);
+        }
+        
+        .note-form {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            padding: 1rem;
+            box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.08);
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            max-width: 900px;
+            margin: auto;
+            gap: 0.5rem;
+            z-index: 99;
+            box-sizing: border-box;
+        }
+        
+        .emoji-buttons {
+            display: flex;
+            overflow-x: auto;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.25rem;
+        }
+        
+        .emoji-buttons button {
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        .emoji-buttons::-webkit-scrollbar {
+            display: none;
+            /* Chrome, Safari */
+        }
+        
+        input[type="text"],
+        input[type="file"] {
+            overflow-x: auto;
+            width: 75%;
+            box-sizing: border-box;
+            padding: 0.75rem;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            margin-left: 0.5rem
+        }
+        
+        .save-btn {
+            background: #ff6f00;
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .input-row input[type="text"] {
+            flex: 1;
+            margin-bottom: 0;
+            /* ยกเลิก margin เดิม */
+        }
+        
+        .input-row .save-btn {
+            width: 15% font-size: 0.5rem;
+            border-radius: 50%;
+        }
+    </style>
 
-    body.dark .chat-card {
-      background: var(--card-dark);
-    }
-
-    .chat-meta {
-      font-size: 0.75rem;
-      color: gray;
-      margin-bottom: 0.5rem;
-    }
-
-    .chat-type-label {
-      position: absolute;
-      top: 0.5rem;
-      right: 0.75rem;
-      font-size: 0.7rem;
-      background: #ff6f00;
-      color: white;
-      padding: 0.2rem 0.5rem;
-      border-radius: 10px;
-      text-transform: capitalize;
-    }
-
-    .chat-img-group {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-      gap: 0.5rem;
-      margin-top: 0.5rem;
-    }
-
-    .chat-img-group img {
-      width: 100%;
-      border-radius: 10px;
-      object-fit: cover;
-    }
-
-    iframe {
-      width: 100%;
-      height: 200px;
-      margin-top: 0.5rem;
-      border-radius: 12px;
-    }
-
-    .chat-text {
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
-
-    .note-link {
-      color: #1976d2;
-      text-decoration: underline;
-      cursor: pointer;
-    }
-
-    .theme-toggle {
-      position: fixed;
-      top: 1rem;
-      right: 1rem;
-      background: #ff6f00;
-      color: white;
-      border: none;
-      padding: 0.5rem;
-      border-radius: 8px;
-      cursor: pointer;
-      z-index: 99;
-    }
-
-    .note-form {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #fff;
-      padding: 1rem;
-      box-shadow: 0 -4px 10px rgba(0,0,0,0.08);
-      border-top-left-radius: 12px;
-      border-top-right-radius: 12px;
-      max-width: 900px;
-      margin: auto;
-      gap: 0.5rem;
-      z-index: 99;
-      box-sizing: border-box;
-    }
-
-    .emoji-buttons {
-      display: flex;
-      overflow-x: auto;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-      padding-bottom: 0.25rem;
-    }
-
-    .emoji-buttons button {
-      font-size: 1.5rem;
-      background: none;
-      border: none;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    input[type="text"], input[type="file"] {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 0.75rem;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      margin-bottom: 0.5rem;
-    }
-
-    .save-btn {
-      background: #ff6f00;
-      color: white;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      border-radius: 8px;
-      cursor: pointer;
-      width: 100%;
-      font-size: 1rem;
-    }
-  </style>
 </head>
+
 <body>
-  <button class="theme-toggle" onclick="toggleTheme()">เปลี่ยนธีม</button>
-  <div class="chat-container" id="chatContainer">
-    <div id="notesContainer"></div>
-  </div>
 
-  <div class="note-form">
-    <label class="upload-label" title="แนบรูปภาพ">
-      📎
-      <input type="file" id="imageInput" accept="image/*" multiple hidden />
-    </label>
-    <input type="text" id="titleInput" placeholder="คุณรู้สึกอย่างไร..." />
-    <div class="emoji-buttons">
-      <button>😊</button><button>😢</button><button>😭</button>
-      <button>😡</button><button>😍</button><button>😴</button>
-      <button>🥹</button><button>😂</button><button>🥰</button>
+    <button class="theme-toggle" onclick="toggleTheme()">เปลี่ยนธีม</button>
+
+    <div class="chat-container" id="chatContainer">
+
+        <div id="notesContainer"></div>
+
     </div>
-    <button class="save-btn" onclick="saveFeeling()">📤</button>
-  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.6/dist/umd/supabase.min.js"></script>
-  <script>
-    const supabase = window.supabase.createClient(
-      'https://fkntlawaawawiusmjsez.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrbnRsYXdhYXdhd2l1c21qc2V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5ODcxMjAsImV4cCI6MjA2NTU2MzEyMH0.G-_fLzcpvPla3dUYNCV7qh0j-JHo1Ahr5fS7fQkHdpw'
-    );
+    <div class="note-form">
 
-    // ใส่อีโมจิลงใน input
-    document.querySelectorAll(".emoji-buttons button").forEach(btn => {
-      btn.onclick = () => {
-        const input = document.getElementById("titleInput");
-        input.value += btn.textContent;
-        input.focus();
-      };
-    });
 
-    async function saveFeeling() {
-      const title = document.getElementById("titleInput").value.trim();
-      const imageInput = document.getElementById("imageInput");
+        <div class="emoji-buttons">
 
-      if (!title && !imageInput.files.length) {
-        return alert("กรุณากรอกความรู้สึกหรือเลือกรูปภาพ");
-      }
+            <button>😊</button><button>😢</button><button>😭</button>
 
-      if (imageInput.files.length) {
-        const urls = [];
+            <button>😡</button><button>😍</button><button>😴</button>
 
-        for (let file of imageInput.files) {
-          const formData = new FormData();
-          formData.append("file", file);
+            <button>🥹</button><button>😂</button><button>🥰</button>
 
-          // เรียก API /upload (ฝั่ง server ต้องมี endpoint นี้)
+        </div>
 
-          const res = await fetch("https://uploads2.ballland10.workers.dev/upload", { method: "POST", body: formData });
-          
 
-          //endpoint
-          //const res = await fetch("/upload", { method: "POST", body: formData });
-          const json = await res.json();
 
-          if (json.error) {
-            alert("❌ Upload Failed: " + json.error);
-            return;
-          }
 
-          urls.push(json.url);
-        }
+        <div class="input-row">
+            <label class="upload-label" title="แนบรูปภาพ">
 
-        await supabase.from('uploads').insert({
-          file_url: JSON.stringify(urls),
-          note: title
-        });
-      } else {
-        await supabase.from('feelings').insert({ title });
-      }
+      📎
 
-      document.getElementById("titleInput").value = '';
-      imageInput.value = '';
-      fetchTimeline();
-    }
+      <input type="file" id="imageInput" accept="image/*" multiple hidden />
 
-    async function deleteItem(type, id) {
-      const table = type === 'emotion' ? 'feelings' : type + 's';
-      const { error } = await supabase.from(table).delete().eq('id', id);
-      if (error) console.error(error);
-      fetchTimeline();
-    }
+    </label>
+            <input type="text" id="titleInput" placeholder="คุณรู้สึกอย่างไร..." />   <button class="save-btn" onclick="saveFeeling()">📝</button>
+        </div>
 
-    async function fetchTimeline() {
-      const [feelingsRes, notesRes, uploadsRes] = await Promise.all([
-        supabase.from('feelings').select('*').order('created_at', { ascending: true }),
-        supabase.from('notes').select('*').order('created_at', { ascending: true }),
-        supabase.from('uploads').select('*').order('created_at', { ascending: false })
-      ]);
 
-      if (feelingsRes.error || notesRes.error || uploadsRes.error) {
-        console.error(feelingsRes.error || notesRes.error || uploadsRes.error);
-        return;
-      }
 
-      const timeline = [];
 
-      feelingsRes.data.forEach(item => timeline.push({ type: 'emotion', ...item }));
-      notesRes.data.forEach(item => timeline.push({ type: 'note', ...item }));
-      uploadsRes.data.forEach(item => timeline.push({ type: 'upload', ...item }));
 
-      // เรียงลำดับ timeline จากเก่าไปใหม่
-      timeline.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    </div>
 
-      renderTimeline(timeline);
-      scrollToBottom();
-    }
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@1.35.6/dist/umd/supabase.min.js"></script>
 
-    function renderTimeline(items) {
-      const container = document.getElementById('notesContainer');
-      container.innerHTML = '';
+    <script>
+        const supabase = window.supabase.createClient(
 
-      items.forEach(item => {
-        const card = document.createElement('div');
-        card.className = 'chat-card';
-        card.setAttribute('data-type', item.type);
-        card.ondblclick = () => {
-          if (confirm('ลบรายการนี้?')) deleteItem(item.type, item.id);
-        };
+            'https://fkntlawaawawiusmjsez.supabase.co',
 
-        const time = new Date(item.created_at).toLocaleString('th-TH', {
-          dateStyle: 'medium', timeStyle: 'short'
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZrbnRsYXdhYXdhd2l1c21qc2V6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5ODcxMjAsImV4cCI6MjA2NTU2MzEyMH0.G-_fLzcpvPla3dUYNCV7qh0j-JHo1Ahr5fS7fQkHdpw'
+
+        );
+
+        document.querySelectorAll(".emoji-buttons button").forEach(btn => {
+
+            btn.onclick = () => {
+
+                const input = document.getElementById("titleInput");
+
+                input.value += btn.textContent;
+
+                input.focus();
+
+            };
+
         });
 
-        let html = `<div class="chat-meta">🕒 ${time}</div><div class="chat-type-label">${item.type}</div>`;
+        async function saveFeeling() {
 
-        if (item.type === 'emotion') {
-          const isYoutube = item.title.includes('youtube.com') || item.title.includes('youtu.be');
-          if (isYoutube) {
-            const vid = extractYouTubeID(item.title);
-            html += `<div class="chat-text">${item.title}</div>`;
-            if (vid) html += `<iframe src="https://www.youtube.com/embed/${vid}" frameborder="0" allowfullscreen></iframe>`;
-          } else {
-            html += `<div class="chat-text">${item.title}</div>`;
-          }
-        } else if (item.type === 'note') {
-          html += `<div class="chat-text"><span class="note-link" onclick="openNote('${item.id}')">${item.title}</span></div>`;
-        } else if (item.type === 'upload') {
-          html += `<div class="chat-text">${item.note || ''}</div>`;
+            const title = document.getElementById("titleInput").value.trim();
 
-          let urls = [];
-          try {
-            urls = JSON.parse(item.file_url);
-            if (!Array.isArray(urls)) urls = [urls];
-          } catch {
-            urls = [item.file_url];
-          }
+            const imageInput = document.getElementById("imageInput");
 
-          html += `<div class="chat-img-group">`;
-          urls.slice(0, 4).forEach(url => {
-            html += `<img src="${url}" alt="upload"/>`;
-          });
-          html += `</div>`;
+            if (!title && !imageInput.files.length) {
+
+                return alert("กรุณากรอกความรู้สึกหรือเลือกรูปภาพ");
+
+            }
+
+            if (imageInput.files.length) {
+
+                const urls = [];
+
+                for (let file of imageInput.files) {
+
+                    const formData = new FormData();
+
+                    formData.append("file", file);
+
+
+                    const res = await fetch("https://uploads2.ballland10.workers.dev/upload", {
+                        method: "POST",
+                        body: formData
+                    });
+
+
+
+                    //endpoint
+
+                    //const res = await fetch("/upload", { method: "POST", body: formData });
+
+                    const json = await res.json();
+
+                    if (json.error) {
+
+                        alert("❌ Upload Failed: " + json.error);
+
+                        return;
+
+                    }
+
+                    urls.push(json.url);
+
+                }
+
+                await supabase.from('uploads').insert({
+
+                    file_url: JSON.stringify(urls),
+
+                    note: title
+
+                });
+
+            } else {
+
+                await supabase.from('feelings').insert({
+                    title
+                });
+
+            }
+
+            document.getElementById("titleInput").value = '';
+
+            imageInput.value = '';
+
+            fetchTimeline();
+
         }
 
-        card.innerHTML = html;
-        container.appendChild(card);
-      });
-    }
+        async function deleteItem(type, id) {
 
-    function scrollToBottom() {
-      const container = document.getElementById("chatContainer");
-      container.scrollTop = container.scrollHeight;
-    }
+            const table = type === 'emotion' ? 'feelings' : type + 's';
 
-    function extractYouTubeID(url) {
-      const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^\s&?/]+)/);
-      return match ? match[1] : '';
-    }
+            const {
+                error
+            } = await supabase.from(table).delete().eq('id', id);
 
-    function openNote(id) {
-      location.href = `/note.html?id=${id}`;
-    }
+            if (error) console.error(error);
 
-    function toggleTheme() {
-      document.body.classList.toggle('dark');
-    }
+            fetchTimeline();
 
-    window.addEventListener('DOMContentLoaded', fetchTimeline);
-  </script>
+        }
+
+        async function fetchTimeline() {
+
+            const [feelingsRes, notesRes, uploadsRes] = await Promise.all([
+
+                supabase.from('feelings').select('*').order('created_at', {
+                    ascending: true
+                }),
+
+                supabase.from('notes').select('*').order('created_at', {
+                    ascending: true
+                }),
+
+                supabase.from('uploads').select('*').order('created_at', {
+                    ascending: false
+                })
+
+            ]);
+
+            if (feelingsRes.error || notesRes.error || uploadsRes.error) {
+
+                console.error(feelingsRes.error || notesRes.error || uploadsRes.error);
+
+                return;
+
+            }
+
+            const timeline = [];
+
+            feelingsRes.data.forEach(item => timeline.push({
+                type: 'emotion',
+                ...item
+            }));
+
+            notesRes.data.forEach(item => timeline.push({
+                type: 'note',
+                ...item
+            }));
+
+            uploadsRes.data.forEach(item => timeline.push({
+                type: 'upload',
+                ...item
+            }));
+
+
+            timeline.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+            renderTimeline(timeline);
+
+            scrollToBottom();
+
+        }
+
+        function renderTimeline(items) {
+
+            const container = document.getElementById('notesContainer');
+
+            container.innerHTML = '';
+
+            items.forEach(item => {
+
+                const card = document.createElement('div');
+
+                card.className = 'chat-card';
+
+                card.setAttribute('data-type', item.type);
+
+                card.ondblclick = () => {
+
+                    if (confirm('ลบรายการนี้?')) deleteItem(item.type, item.id);
+
+                };
+
+                const time = new Date(item.created_at).toLocaleString('th-TH', {
+
+                    dateStyle: 'medium',
+                    timeStyle: 'short'
+
+                });
+
+                let html = `<div class="chat-meta">🕒 ${time}</div><div class="chat-type-label">${item.type}</div>`;
+
+                if (item.type === 'emotion') {
+
+                    const isYoutube = item.title.includes('youtube.com') || item.title.includes('youtu.be');
+
+                    if (isYoutube) {
+
+                        const vid = extractYouTubeID(item.title);
+
+                        html += `<div class="chat-text">${item.title}</div>`;
+
+                        if (vid) html += `<iframe src="https://www.youtube.com/embed/${vid}" frameborder="0" allowfullscreen></iframe>`;
+
+                    } else {
+
+                        html += `<div class="chat-text">${item.title}</div>`;
+
+                    }
+
+                } else if (item.type === 'note') {
+
+                    html += `<div class="chat-text"><span class="note-link" onclick="openNote('${item.id}')">${item.title}</span></div>`;
+
+                } else if (item.type === 'upload') {
+
+                    html += `<div class="chat-text">${item.note || ''}</div>`;
+
+                    let urls = [];
+
+                    try {
+
+                        urls = JSON.parse(item.file_url);
+
+                        if (!Array.isArray(urls)) urls = [urls];
+
+                    } catch {
+
+                        urls = [item.file_url];
+
+                    }
+
+                    html += `<div class="chat-img-group">`;
+
+                    urls.slice(0, 4).forEach(url => {
+
+                        html += `<img src="${url}" alt="upload"/>`;
+
+                    });
+
+                    html += `</div>`;
+
+                }
+
+                card.innerHTML = html;
+
+                container.appendChild(card);
+
+            });
+
+        }
+
+        function scrollToBottom() {
+
+            const container = document.getElementById("chatContainer");
+
+            container.scrollTop = container.scrollHeight;
+
+        }
+
+        function extractYouTubeID(url) {
+
+            const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([^\s&?/]+)/);
+
+            return match ? match[1] : '';
+
+        }
+
+        function openNote(id) {
+
+            location.href = `/note.html?id=${id}`;
+
+        }
+
+        function toggleTheme() {
+
+            document.body.classList.toggle('dark');
+
+        }
+
+        window.addEventListener('DOMContentLoaded', fetchTimeline);
+    </script>
+
 </body>
+
 </html>
