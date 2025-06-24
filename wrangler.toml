@@ -6,3 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 [[r2_buckets]]
 binding = "R2_BUCKET"
 bucket_name = "uploads"
+
+[site]
+bucket = "./public"  # ตรงนี้บอกว่า index.html อยู่ที่นี่
+entry-point = "workers"
