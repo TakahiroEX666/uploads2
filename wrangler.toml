@@ -9,4 +9,3 @@ bucket_name = "uploads"
 
 [site]
 bucket = "./public"  # ตรงนี้บอกว่า index.html อยู่ที่นี่
-entry-point = "workers"
