@@ -1,0 +1,125 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My R2 Drive</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #111;
+      color: #fff;
+      padding: 1rem;
+    }
+    h1 { margin-bottom: 1rem; }
+
+    .breadcrumb {
+      margin-bottom: 1rem;
+      font-size: 14px;
+      color: #ccc;
+    }
+
+    .file-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .file-card {
+      background: #222;
+      padding: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .file-card:hover {
+      background: #333;
+    }
+
+    .file-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>📂 My R2 Drive</h1>
+  <div class="breadcrumb" id="breadcrumb">root</div>
+  <div id="fileList" class="file-list">Loading...</div>
+
+  <script>
+    let allFiles = [];
+    let currentPath = '';
+
+    function renderBreadcrumb() {
+      const parts = currentPath ? currentPath.split('/') : [];
+      let html = `<a href="#" onclick="navigate('')">root</a>`;
+      let path = '';
+      for (let part of parts) {
+        path += (path ? '/' : '') + part;
+        html += ` / <a href="#" onclick="navigate('${path}')">${part}</a>`;
+      }
+      document.getElementById('breadcrumb').innerHTML = html;
+    }
+
+    function navigate(path) {
+      currentPath = path;
+      renderBreadcrumb();
+      renderFiles();
+    }
+
+    async function loadFiles() {
+      const res = await fetch('/api/list');
+      allFiles = await res.json();
+      renderBreadcrumb();
+      renderFiles();
+    }
+
+    function renderFiles() {
+      const container = document.getElementById('fileList');
+      container.innerHTML = '';
+
+      const folders = new Set();
+      const files = [];
+
+      allFiles.forEach(file => {
+        if (!file.name.startsWith(currentPath)) return;
+
+        const rest = file.name.slice(currentPath.length);
+        const parts = rest.split('/').filter(Boolean);
+        if (parts.length === 0) return;
+
+        if (parts.length > 1) {
+          folders.add(parts[0]);
+        } else {
+          files.push(file);
+        }
+      });
+
+      [...folders].sort().forEach(folder => {
+        const el = document.createElement('div');
+        el.className = 'file-card';
+        el.innerHTML = `<span class="file-icon">📁</span><strong>${folder}/</strong>`;
+        el.onclick = () => navigate(currentPath + (currentPath ? '/' : '') + folder);
+        container.appendChild(el);
+      });
+
+      files.sort((a, b) => a.name.localeCompare(b.name)).forEach(file => {
+        const el = document.createElement('div');
+        el.className = 'file-card';
+        const fileName = file.name.split('/').pop();
+        el.innerHTML = `<span class="file-icon">📄</span><strong>${fileName}</strong><br>${(file.size / 1024).toFixed(1)} KB`;
+        el.onclick = () => {
+          const r2Url = `https://pub-bcd0954facce440ca60e0171468dafc9.r2.dev/${file.name}`; // แก้ URL ให้ตรงกับของคุณ
+          window.open(r2Url, '_blank');
+        };
+        container.appendChild(el);
+      });
+    }
+
+    loadFiles();
+  </script>
+</body>
+</html>
