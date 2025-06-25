@@ -71,7 +71,7 @@
     }
 
     async function loadFiles() {
-      const res = await fetch('/api/list');
+      const res = await fetch('https://uploads2.ballland10.workers.dev/api/list');
       allFiles = await res.json();
       renderBreadcrumb();
       renderFiles();
