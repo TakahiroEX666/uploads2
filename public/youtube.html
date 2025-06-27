@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YouTube Playlist Tool</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 2rem;
+    }
+    h1 {
+      text-align: center;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+    }
+    input, button, select {
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      width: 100%;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      background: #fff;
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>YouTube Playlist Manager</h1>
+
+    <div>
+      <label>🔍 Search Playlist Videos</label>
+      <input id="playlistId" placeholder="Enter Playlist ID (e.g., WL or PL...)" />
+      <button onclick="listVideos()">List Videos</button>
+    </div>
+
+    <div>
+      <label>➕ Add Video</label>
+      <input id="addVideoId" placeholder="YouTube Video ID (e.g., dQw4w9WgXcQ)" />
+      <input id="addToPlaylist" placeholder="Playlist ID to Add" />
+      <button onclick="addVideo()">Add</button>
+    </div>
+
+    <div>
+      <label>🗑️ Delete Video</label>
+      <input id="deleteItemId" placeholder="Playlist Item ID to Delete" />
+      <button onclick="deleteVideo()">Delete</button>
+    </div>
+
+    <div>
+      <label>📂 Your Playlists</label>
+      <button onclick="fetchPlaylists()">Fetch My Playlists</button>
+      <ul id="playlistList"></ul>
+    </div>
+
+    <hr/>
+
+    <div>
+      <h3>🎬 Playlist Videos</h3>
+      <ul id="videoList"></ul>
+    </div>
+  </div>
+
+  <script>
+    const BASE_URL = 'https://websocket-toc3.onrender.com';
+
+    async function listVideos() {
+      const playlistId = document.getElementById('playlistId').value.trim();
+      const res = await fetch(`${BASE_URL}/list?playlistId=${playlistId}`);
+      const data = await res.json();
+      const list = document.getElementById('videoList');
+      list.innerHTML = '';
+      data.forEach(item => {
+        const li = document.createElement('li');
+        li.innerHTML = `<span>${item.title}</span><code>${item.id}</code>`;
+        list.appendChild(li);
+      });
+    }
+
+    async function addVideo() {
+      const videoId = document.getElementById('addVideoId').value.trim();
+      const playlistId = document.getElementById('addToPlaylist').value.trim();
+      await fetch(`${BASE_URL}/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ videoId, playlistId })
+      });
+      alert('Video added');
+      listVideos();
+    }
+
+    async function deleteVideo() {
+      const itemId = document.getElementById('deleteItemId').value.trim();
+      await fetch(`${BASE_URL}/delete`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId })
+      });
+      alert('Video deleted');
+      listVideos();
+    }
+
+    async function fetchPlaylists() {
+      const res = await fetch(`${BASE_URL}/playlists`);
+      const data = await res.json();
+      const list = document.getElementById('playlistList');
+      list.innerHTML = '';
+      data.forEach(pl => {
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${pl.title}</strong> <code>${pl.id}</code>`;
+        list.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
