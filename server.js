@@ -15,6 +15,48 @@ export default {
       });
     }
 
+
+    if (method === "GET" && url.pathname === "/api/shopee") {
+      const targetUrl = url.searchParams.get('url');
+
+      if (!targetUrl) {
+        return new Response('Please provide a "url" parameter.', { status: 400 });
+      }
+
+      try {
+        const response = await fetch(targetUrl, {
+          headers: {
+            'User-Agent': 'WhatsApp/2.24.8.76A Javascript' // ใช้ User-Agent ของ WhatsApp
+          }
+        });
+
+        if (!response.ok) {
+          // หาก Fetch ไม่สำเร็จ อาจเป็นเพราะ URL ไม่ถูกต้องหรือโดนบล็อก
+          return new Response(`Failed to fetch URL: ${response.status} ${response.statusText}`, { status: response.status });
+        }
+
+        const html = await response.text();
+        // ค้นหา meta tag ที่มี property="og:image"
+        const ogImageMatch = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]*)"[^>]*>/i);
+
+        if (ogImageMatch && ogImageMatch[1]) {
+          // ส่งคืน URL ของ og:image
+          return new Response(ogImageMatch[1], {
+            headers: {
+              'Content-Type': 'text/plain',
+              'Access-Control-Allow-Origin': '*' // อนุญาต CORS สำหรับการเรียกจากหน้าบ้าน
+            }
+          });
+        } else {
+          return new Response('og:image not found on the page.', { status: 404 });
+        }
+
+      } catch (error) {
+        console.error("❌ Shopee OG Image Fetch Error", error);
+        return new Response(`Error processing request: ${error.message}`, { status: 500 });
+      }
+    }
+
     // ✅ GET /api/list → ดูไฟล์ทั้งหมดใน R2
     if (method === "GET" && url.pathname === "/api/list") {
       try {
