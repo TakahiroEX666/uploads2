@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OG Image Fetcher</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+        input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #ogImageContainer {
+            margin-top: 20px;
+            text-align: center;
+        }
+        #ogImage {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #eee;
+            border-radius: 4px;
+        }
+        #message {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>OG Image Fetcher</h1>
+        <p>Enter a URL to fetch its Open Graph (og:image).</p>
+        <input type="text" id="urlInput" placeholder="e.g., https://www.example.com">
+        <button onclick="fetchOgImage()">Fetch OG Image</button>
+        <div id="message"></div>
+        <div id="ogImageContainer">
+            <img id="ogImage" src="" alt="OG Image" style="display: none;">
+        </div>
+    </div>
+
+    <script>
+        // *** เปลี่ยน YOUR_WORKER_URL_HERE เป็น URL ของ Cloudflare Worker ของคุณ ***
+        const WORKER_URL = 'https://og-image-fetcher.<your-subdomain>.workers.dev'; 
+
+        async function fetchOgImage() {
+            const urlInput = document.getElementById('urlInput').value;
+            const ogImage = document.getElementById('ogImage');
+            const message = document.getElementById('message');
+
+            ogImage.style.display = 'none';
+            ogImage.src = '';
+            message.textContent = '';
+
+            if (!urlInput) {
+                message.textContent = 'Please enter a URL.';
+                return;
+            }
+
+            try {
+                // เข้ารหัส URL ที่ส่งไปเพื่อความปลอดภัย
+                const encodedUrl = encodeURIComponent(urlInput);
+                const response = await fetch(`${WORKER_URL}?url=${encodedUrl}`);
+
+                if (response.ok) {
+                    const imageUrl = await response.text();
+                    ogImage.src = imageUrl;
+                    ogImage.style.display = 'block';
+                } else {
+                    const errorText = await response.text();
+                    message.textContent = `Error fetching OG image: ${errorText}`;
+                }
+            } catch (error) {
+                message.textContent = `An error occurred: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
