@@ -87,62 +87,81 @@ export default {
     }
 
     // ✅ POST / (upload)
-    if (method === "POST") {
-      try {
-        const contentType = request.headers.get("content-type") || "";
+            if (method === "POST") {
+            try {
+                const contentType = request.headers.get("content-type") || "";
+                if (!contentType.includes("multipart/form-data")) {
+                    return new Response(JSON.stringify({ error: "ต้องเป็น multipart/form-data" }), {
+                        status: 400,
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Access-Control-Allow-Origin": "*"
+                        }
+                    });
+                }
 
-        if (!contentType.includes("multipart/form-data")) {
-          return new Response(JSON.stringify({ error: "ต้องเป็น multipart/form-data" }), {
-            status: 400,
-            headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*"
+                const formData = await request.formData();
+                const originalFile = formData.get("originalFile");
+                const compressedFile = formData.get("compressedFile");
+
+                if (!originalFile || typeof originalFile === "string" || !compressedFile || typeof compressedFile === "string") {
+                    return new Response(JSON.stringify({ error: "ไม่พบไฟล์ original หรือ compressed" }), {
+                        status: 400,
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Access-Control-Allow-Origin": "*"
+                        }
+                    });
+                }
+
+                // สร้างชื่อไฟล์สำหรับไฟล์ต้นฉบับ
+                const originalFilename = `${Date.now()}_original_${originalFile.name}`;
+                // สร้างชื่อไฟล์สำหรับไฟล์ที่บีบอัด
+                const compressedFilename = `${Date.now()}_compressed_${originalFile.name}`;
+
+                // อัปโหลดไฟล์ต้นฉบับ
+                await env.R2_BUCKET.put(originalFilename, originalFile.stream(), {
+                    httpMetadata: {
+                        contentType: originalFile.type,
+                    },
+                });
+
+                // อัปโหลดไฟล์ที่บีบอัด
+                await env.R2_BUCKET.put(compressedFilename, compressedFile.stream(), {
+                    httpMetadata: {
+                        contentType: compressedFile.type,
+                    },
+                });
+
+                // สร้าง URL ของทั้งสองไฟล์
+                const originalUrl = `https://pub-bcd0954facce440ca60e0171468dafc9.r2.dev/${originalFilename}`;
+                const compressedUrl = `https://pub-bcd0954facce440ca60e0171468dafc9.r2.dev/${compressedFilename}`;
+
+                // ส่งข้อมูล URL ทั้งสองกลับไป
+                return new Response(JSON.stringify({
+                    originalUrl: originalUrl,
+                    compressedUrl: compressedUrl
+                }), {
+                    status: 200,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*"
+                    },
+                });
+
+            } catch (err) {
+                console.error("❌ Upload error", err);
+                return new Response(JSON.stringify({ error: "Upload failed" }), {
+                    status: 500,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Access-Control-Allow-Origin": "*"
+                    },
+                });
             }
-          });
         }
 
-        const formData = await request.formData();
-        const file = formData.get("file");
-
-        if (!file || typeof file === "string") {
-          return new Response(JSON.stringify({ error: "ไม่พบไฟล์" }), {
-            status: 400,
-            headers: {
-              "Content-Type": "application/json",
-              "Access-Control-Allow-Origin": "*"
-            }
-          });
-        }
-
-        const filename = `${Date.now()}_${file.name}`;
-
-        await env.R2_BUCKET.put(filename, file.stream(), {
-          httpMetadata: {
-            contentType: file.type,
-          },
-        });
-
-        const publicUrl = `https://pub-bcd0954facce440ca60e0171468dafc9.r2.dev/${filename}`;
-
-        return new Response(JSON.stringify({ url: publicUrl }), {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*"
-          },
-        });
-      } catch (err) {
-        console.error("❌ Upload error", err);
-        return new Response(JSON.stringify({ error: "Upload failed" }), {
-          status: 500,
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*"
-          },
-        });
-      }
-    }
-
+    
     // ❌ หากไม่ match route ใด ๆ
     return new Response("Method not allowed or unknown route", {
       status: 405,
