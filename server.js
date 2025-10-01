@@ -232,7 +232,9 @@ if (method === "POST" && url.pathname === "/upload-file") {
 if (method === "POST" && url.pathname === "/soraAI") {
 
 const { messages } = await request.json();
-
+const lastMessage = messages[messages.length - 1]?.content || "";
+  
+  
       const response = await fetch(
         `https://api.cloudflare.com/client/v4/accounts/474707b9f3c070db2946e0d268def24f/ai/run/@cf/openai/gpt-oss-120b`,
         {
@@ -242,7 +244,7 @@ const { messages } = await request.json();
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            messages, // [{role: "user", content: "Hello"}]
+            input: lastMessage
           }),
         }
       );
