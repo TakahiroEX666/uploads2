@@ -161,7 +161,73 @@ export default {
             }
         }
 
-    
+    // ✅ POST /upload-file (แนบไฟล์ทั่วไป)
+if (method === "POST" && url.pathname === "/upload-file") {
+  try {
+    const contentType = request.headers.get("content-type") || "";
+    if (!contentType.includes("multipart/form-data")) {
+      return new Response(JSON.stringify({ error: "ต้องเป็น multipart/form-data" }), {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        }
+      });
+    }
+
+    const formData = await request.formData();
+    const file = formData.get("file");
+
+    if (!file || typeof file === "string") {
+      return new Response(JSON.stringify({ error: "ไม่พบไฟล์" }), {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*"
+        }
+      });
+    }
+
+    // ✅ ตั้งชื่อไฟล์
+    const filename = `${Date.now()}_${file.name}`;
+
+    // ✅ อัปโหลดไป R2
+    await env.R2_BUCKET.put(filename, file.stream(), {
+      httpMetadata: {
+        contentType: file.type,
+      },
+    });
+
+    // ✅ สร้าง URL สำหรับไฟล์
+    const fileUrl = `https://pub-bcd0954facce440ca60e0171468dafc9.r2.dev/${filename}`;
+
+    // ✅ ส่งข้อมูลกลับ (เป็น jsonb-friendly)
+    return new Response(JSON.stringify({
+      type: "file",
+      name: file.name,
+      url: fileUrl,
+      size: file.size,
+      mimetype: file.type,
+    }), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      }
+    });
+
+  } catch (err) {
+    console.error("❌ Upload-file error", err);
+    return new Response(JSON.stringify({ error: "Upload-file failed" }), {
+      status: 500,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*"
+      }
+    });
+  }
+}
+
     // ❌ หากไม่ match route ใด ๆ
     return new Response("Method not allowed or unknown route", {
       status: 405,
