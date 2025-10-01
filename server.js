@@ -166,7 +166,7 @@ if (method === "POST" && url.pathname === "/upload-file") {
   try {
     const contentType = request.headers.get("content-type") || "";
     if (!contentType.includes("multipart/form-data")) {
-      return new Response(JSON.stringify({ error: "ต้องเป็น multipart/form-data" }), {
+      return new Response(JSON.stringify({ error: "ต้องเป็น multipart/form-data เพิ่ออัปโหลดไฟล์" }), {
         status: 400,
         headers: {
           "Content-Type": "application/json",
