@@ -10,7 +10,8 @@ export default {
         headers: {
           "Access-Control-Allow-Origin": "*",
           "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Allow-Headers": "Content-Type, Authorization",
+          
         },
       });
     }
@@ -237,7 +238,7 @@ const { messages } = await request.json();
         {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${env.CF_API_TOKEN}`,
+            "Authorization": `Bearer DbtwUfeyusBw-IBv6MEC8dUVyi-gF363W1-21ym2`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
