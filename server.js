@@ -87,7 +87,7 @@ export default {
     }
 
     // ✅ POST / (upload)
-            if (method === "POST") {
+            if (method === "POST"&& url.pathname === "/upload-pics") {
             try {
                 const contentType = request.headers.get("content-type") || "";
                 if (!contentType.includes("multipart/form-data")) {
